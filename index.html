@@ -239,7 +239,8 @@ dialog h3{margin:0 0 .5em}
                 <button class="btn hidden" id="recPause">一時停止</button>
                 <button class="btn hidden" id="recStop">録音終了</button>
               </div>
-              <p class="note" style="margin:.6em 0 0">または <label class="btn small" style="display:inline-block">音声ファイルを選ぶ<input type="file" id="fileIn" accept="audio/*,video/*" class="hidden"></label></p>
+              <p class="note" id="recMsg" role="status" style="text-align:left;margin:.6em 0 0"></p>
+              <p class="note" style="margin:.4em 0 0">または <label class="btn small" style="display:inline-block">音声ファイルを選ぶ<input type="file" id="fileIn" accept="audio/*,video/*" class="hidden"></label></p>
             </div>
             <audio id="player" controls class="hidden"></audio>
             <label class="f" for="fModel">文字起こしの精度</label>
@@ -711,13 +712,21 @@ $('recStart').onclick = async () => {
   } catch (e) { return alert('マイクを使えません。ブラウザのアドレスバー横のマイク許可を確認してください。'); }
   clearAudio();
   A.chunks = [];
-  A.recorder = new MediaRecorder(A.stream);
-  A.recorder.ondataavailable = e => { if (e.data.size) A.chunks.push(e.data); };
+  // iPhone(Safari)はmp4形式が安定。対応形式を明示して選ぶ
+  const mime = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm']
+    .find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+  A.recorder = mime ? new MediaRecorder(A.stream, { mimeType: mime }) : new MediaRecorder(A.stream);
+  A.recorder.ondataavailable = e => { if (e.data && e.data.size) A.chunks.push(e.data); };
   A.recorder.onstop = () => {
-    A.blob = new Blob(A.chunks, { type: A.recorder.mimeType || 'audio/webm' });
-    setAudio(A.blob);
+    const type = A.recorder.mimeType || mime || 'audio/mp4';
+    const blob = new Blob(A.chunks, { type });
+    const sec = Math.round(A.acc / 1000);
+    if (!blob.size) { $('recMsg').textContent = '録音データが空でした。マイクの許可とマナーモード以外の設定を確認して、もう一度録音してください。'; return; }
+    setAudio(blob);
+    $('recMsg').textContent = '録音できました：' + fmtT(sec) + '（' + (blob.size < 1048576 ? Math.max(1, Math.round(blob.size / 1024)) + 'KB' : (blob.size / 1048576).toFixed(1) + 'MB') + '）。下の再生ボタンで確認できます。';
   };
-  A.recorder.start(1000);
+  // 区切らずに録音（Safariは細切れにすると壊れたファイルになることがあるため）
+  A.recorder.start();
   A.acc = 0; A.t0 = Date.now(); S.busy = true; keepAwake(true);
   A.timer = setInterval(() => { $('recTime').textContent = fmtT((A.acc + (A.recorder.state === 'recording' ? Date.now() - A.t0 : 0)) / 1000); }, 250);
   startMeter();
@@ -729,7 +738,10 @@ $('recPause').onclick = () => {
   if (A.recorder.state === 'recording') { A.recorder.pause(); A.acc += Date.now() - A.t0; $('recPause').textContent = '再開'; $('recBox').classList.remove('on'); }
   else { A.recorder.resume(); A.t0 = Date.now(); $('recPause').textContent = '一時停止'; $('recBox').classList.add('on'); }
 };
-$('recStop').onclick = () => { stopRecordingHard(true); };
+$('recStop').onclick = () => {
+  if (A.recorder && A.recorder.state === 'recording') A.acc += Date.now() - A.t0;
+  stopRecordingHard(true);
+};
 
 function stopRecordingHard(keep) {
   if (A.recorder && A.recorder.state !== 'inactive') {
@@ -769,7 +781,7 @@ function clearAudio() {
   if (A.url) URL.revokeObjectURL(A.url);
   A.url = ''; A.blob = null;
   const pl = $('player'); pl.pause(); pl.removeAttribute('src'); pl.load(); pl.classList.add('hidden');
-  $('procBtn').disabled = true; $('recTime').textContent = '00:00';
+  $('procBtn').disabled = true; $('recTime').textContent = '00:00'; $('recMsg').textContent = '';
 }
 $('fileIn').onchange = e => {
   const f = e.target.files[0]; if (!f) return;
