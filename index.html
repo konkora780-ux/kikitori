@@ -717,14 +717,25 @@ $('recStart').onclick = async () => {
     .find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
   A.recorder = mime ? new MediaRecorder(A.stream, { mimeType: mime }) : new MediaRecorder(A.stream);
   A.recorder.ondataavailable = e => { if (e.data && e.data.size) A.chunks.push(e.data); };
-  A.recorder.onstop = () => {
+  A.recorder.onstop = async () => {
     const type = A.recorder.mimeType || mime || 'audio/mp4';
     const blob = new Blob(A.chunks, { type });
     const sec = Math.round(A.acc / 1000);
-    if (!blob.size) { $('recMsg').textContent = '録音データが空でした。マイクの許可とマナーモード以外の設定を確認して、もう一度録音してください。'; return; }
-    setAudio(blob);
-    checkPlayback(blob, sec);
-    $('recMsg').textContent = '録音できました：' + fmtT(sec) + '（' + (blob.size < 1048576 ? Math.max(1, Math.round(blob.size / 1024)) + 'KB' : (blob.size / 1048576).toFixed(1) + 'MB') + '）。下の再生ボタンで確認できます。';
+    if (!blob.size) { $('recMsg').textContent = '録音データが空でした。マイクの許可を確認して、もう一度録音してください。'; return; }
+    setAudio(blob);   // 文字起こし用には元の録音を使う
+    $('recMsg').textContent = '録音データを確認しています…';
+    // iPhoneは録音ファイルの長さを読み違えることがあるため、聞き返し用に中身を読み直してWAVで再生する
+    try {
+      const pcm = await decodeTo16k(blob);
+      const real = pcm.length / 16000;
+      A.wavUrl = URL.createObjectURL(pcmToWav(pcm, 16000));
+      $('player').src = A.wavUrl;
+      $('recMsg').textContent = real < sec * 0.5
+        ? '録音時間 ' + fmtT(sec) + ' のうち、' + fmtT(real) + ' 分しか保存されていません。録音中に画面が切り替わった可能性があります。'
+        : '録音できました：' + fmtT(real) + '。下の再生ボタンで確認できます。';
+    } catch (e) {
+      $('recMsg').textContent = '録音できました：' + fmtT(sec) + '（再生できない場合は録音し直してください）';
+    }
   };
   // 区切らずに録音（Safariは細切れにすると壊れたファイルになることがあるため）
   A.recorder.start();
