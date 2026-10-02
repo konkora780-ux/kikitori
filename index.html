@@ -703,84 +703,82 @@ $('delRecBtn').onclick = async () => {
 };
 
 /* ========== 録音 ========== */
-const A = { stream: null, recorder: null, chunks: [], blob: null, url: '', t0: 0, acc: 0, timer: null, ctx: null, raf: 0 };
+/* iPhoneのMediaRecorderは中身が空になることがあるため、マイクの音を直接受け取り
+   16kHz・モノラルの音声データとして自前で貯める方式にしている */
+const A = { stream: null, recorder: null, blob: null, url: '', wavUrl: '', ctx: null, proc: null, src: null,
+  parts: [], samples: 0, level: 0, timer: null, raf: 0, rs: null };
 
 $('recStart').onclick = async () => {
   if (A.blob && !await confirmDlg('録音し直す', '今の録音データは消えます（記録の文字は残ります）。新しく録音しますか？', '録音する')) return;
+  // iPhoneでは、ボタンを押した直後に作らないと音声処理が止まったままになる
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
   try {
-    A.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, noiseSuppression: true, autoGainControl: true } });
-  } catch (e) { return alert('マイクを使えません。ブラウザのアドレスバー横のマイク許可を確認してください。'); }
+    A.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+  } catch (e) { ctx.close(); return alert('マイクを使えません。設定アプリでSafariのマイク許可を確認してください。'); }
+  try { await ctx.resume(); } catch (_) {}
   clearAudio();
-  A.chunks = [];
-  // iPhone(Safari)はmp4形式が安定。対応形式を明示して選ぶ
-  const mime = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm']
-    .find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
-  A.recorder = mime ? new MediaRecorder(A.stream, { mimeType: mime }) : new MediaRecorder(A.stream);
-  A.recorder.ondataavailable = e => { if (e.data && e.data.size) A.chunks.push(e.data); };
-  A.recorder.onstop = async () => {
-    const type = A.recorder.mimeType || mime || 'audio/mp4';
-    const blob = new Blob(A.chunks, { type });
-    const sec = Math.round(A.acc / 1000);
-    if (!blob.size) { $('recMsg').textContent = '録音データが空でした。マイクの許可を確認して、もう一度録音してください。'; return; }
-    setAudio(blob);   // 文字起こし用には元の録音を使う
-    $('recMsg').textContent = '録音データを確認しています…';
-    // iPhoneは録音ファイルの長さを読み違えることがあるため、聞き返し用に中身を読み直してWAVで再生する
-    try {
-      const pcm = await decodeTo16k(blob);
-      const real = pcm.length / 16000;
-      A.wavUrl = URL.createObjectURL(pcmToWav(pcm, 16000));
-      $('player').src = A.wavUrl;
-      $('recMsg').textContent = real < sec * 0.5
-        ? '録音時間 ' + fmtT(sec) + ' のうち、' + fmtT(real) + ' 分しか保存されていません。録音中に画面が切り替わった可能性があります。'
-        : '録音できました：' + fmtT(real) + '。下の再生ボタンで確認できます。';
-    } catch (e) {
-      $('recMsg').textContent = '録音できました：' + fmtT(sec) + '（再生できない場合は録音し直してください）';
+  A.ctx = ctx; A.parts = []; A.samples = 0; A.level = 0;
+  A.rs = { ratio: ctx.sampleRate / 16000, n: 0, next: ctx.sampleRate / 16000, sum: 0, cnt: 0 };
+  A.src = ctx.createMediaStreamSource(A.stream);
+  A.proc = ctx.createScriptProcessor(4096, 1, 1);
+  A.proc.onaudioprocess = e => {
+    const x = e.inputBuffer.getChannelData(0), R = A.rs;
+    let m = 0;
+    for (let i = 0; i < x.length; i++) { const v = x[i] < 0 ? -x[i] : x[i]; if (v > m) m = v; }
+    A.level = m;
+    if (A.recorder.state !== 'recording') return;
+    const out = new Int16Array(Math.ceil(x.length / R.ratio) + 2);
+    let k = 0;
+    for (let i = 0; i < x.length; i++) {
+      R.sum += x[i]; R.cnt++; R.n++;
+      if (R.n >= R.next) {
+        const v = Math.max(-1, Math.min(1, R.sum / R.cnt));
+        out[k++] = v < 0 ? v * 0x8000 : v * 0x7FFF;
+        R.sum = 0; R.cnt = 0; R.next += R.ratio;
+      }
     }
+    A.parts.push(out.slice(0, k)); A.samples += k;
   };
-  // 区切らずに録音（Safariは細切れにすると壊れたファイルになることがあるため）
-  A.recorder.start();
-  A.acc = 0; A.t0 = Date.now(); S.busy = true; keepAwake(true);
-  A.timer = setInterval(() => { $('recTime').textContent = fmtT((A.acc + (A.recorder.state === 'recording' ? Date.now() - A.t0 : 0)) / 1000); }, 250);
-  startMeter();
+  A.src.connect(A.proc); A.proc.connect(ctx.destination);   // 出力は無音（つながないと動かない）
+  A.recorder = { state: 'recording' };
+  S.busy = true; keepAwake(true);
+  A.timer = setInterval(() => { $('recTime').textContent = fmtT(A.samples / 16000); }, 250);
+  const loop = () => { $('meterBar').style.width = Math.min(100, A.level * 160) + '%'; A.raf = requestAnimationFrame(loop); };
+  loop();
   $('recBox').classList.add('on');
   $('recStart').classList.add('hidden'); $('recPause').classList.remove('hidden'); $('recStop').classList.remove('hidden');
   $('fileIn').disabled = true; $('procBtn').disabled = true;
 };
 $('recPause').onclick = () => {
-  if (A.recorder.state === 'recording') { A.recorder.pause(); A.acc += Date.now() - A.t0; $('recPause').textContent = '再開'; $('recBox').classList.remove('on'); }
-  else { A.recorder.resume(); A.t0 = Date.now(); $('recPause').textContent = '一時停止'; $('recBox').classList.add('on'); }
+  if (A.recorder.state === 'recording') { A.recorder.state = 'paused'; $('recPause').textContent = '再開'; $('recBox').classList.remove('on'); }
+  else { A.recorder.state = 'recording'; $('recPause').textContent = '一時停止'; $('recBox').classList.add('on'); }
 };
-$('recStop').onclick = () => {
-  if (A.recorder && A.recorder.state === 'recording') A.acc += Date.now() - A.t0;
-  stopRecordingHard(true);
-};
+$('recStop').onclick = () => { stopRecordingHard(true); };
 
 function stopRecordingHard(keep) {
-  if (A.recorder && A.recorder.state !== 'inactive') {
-    if (!keep) A.recorder.onstop = null;
-    A.recorder.stop();
-  }
+  const wasRec = A.recorder && A.recorder.state !== 'inactive';
+  if (A.recorder) A.recorder.state = 'inactive';
+  if (A.proc) { A.proc.onaudioprocess = null; try { A.proc.disconnect(); A.src.disconnect(); } catch (_) {} }
+  if (A.ctx) A.ctx.close().catch(() => {});
   if (A.stream) A.stream.getTracks().forEach(t => t.stop());
-  A.stream = null; clearInterval(A.timer); stopMeter();
+  A.proc = A.src = A.ctx = A.stream = null;
+  clearInterval(A.timer); cancelAnimationFrame(A.raf); $('meterBar').style.width = '0';
   if (!S.proc) S.busy = false;
   $('recBox').classList.remove('on');
   $('recStart').classList.remove('hidden'); $('recPause').classList.add('hidden'); $('recStop').classList.add('hidden');
   $('recPause').textContent = '一時停止'; $('fileIn').disabled = false;
+  if (keep && wasRec) finishRecording();
+  if (!keep) A.parts = [];
 }
-function startMeter() {
-  A.ctx = new AudioContext();
-  const an = A.ctx.createAnalyser(); an.fftSize = 512;
-  A.ctx.createMediaStreamSource(A.stream).connect(an);
-  const buf = new Uint8Array(an.fftSize);
-  const loop = () => {
-    an.getByteTimeDomainData(buf);
-    let m = 0; for (const v of buf) m = Math.max(m, Math.abs(v - 128));
-    $('meterBar').style.width = Math.min(100, m / 128 * 160) + '%';
-    A.raf = requestAnimationFrame(loop);
-  };
-  loop();
+function finishRecording() {
+  const pcm = new Float32Array(A.samples);
+  let o = 0;
+  for (const p of A.parts) { for (let i = 0; i < p.length; i++) pcm[o++] = p[i] / 0x8000; }
+  A.parts = [];
+  if (pcm.length < 16000 * 0.5) { $('recMsg').textContent = '音声がほとんど録音されていません。マイクの許可を確認して、もう一度録音してください。'; return; }
+  setAudio(pcmToWav(pcm, 16000));
+  $('recMsg').textContent = '録音できました：' + fmtT(pcm.length / 16000) + '。下の再生ボタンで確認できます。';
 }
-function stopMeter() { cancelAnimationFrame(A.raf); if (A.ctx) A.ctx.close(); A.ctx = null; $('meterBar').style.width = '0'; }
 
 function setAudio(blob) {
   A.blob = blob;
