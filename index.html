@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="聞き取り記録">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#1E3550">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<meta name="robots" content="noindex, nofollow">
+<title>聞き取り記録</title>
+<style>
+:root{
+  --ink:#1E3550; --ink2:#4A5D73; --paper:#FAFBFC; --panel:#EEF2F6; --line:#CBD5E0;
+  --seal:#A8382B; --ok:#2F6B4F;
+  --c-st:#B7791F; --c-st-bg:#FDF3E1;
+  --c-i1:#2B6CB0; --c-i2:#2F855A; --c-i3:#6B46C1; --c-i4:#C05621; --c-un:#718096;
+  --font:"BIZ UDPGothic","BIZ UDPゴシック","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);color:var(--ink);background:var(--paper);font-size:15px;line-height:1.7}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid #F6AD55;outline-offset:2px}
+.hidden{display:none!important}
+
+/* 共通部品 */
+.btn{border:1.5px solid var(--ink);background:#fff;border-radius:6px;padding:.45em 1em;font-weight:700}
+.btn:hover{background:var(--panel)}
+.btn.primary{background:var(--ink);color:#fff}
+.btn.primary:hover{background:#2A4A6E}
+.btn.danger{border-color:var(--seal);color:var(--seal)}
+.btn.rec{background:var(--seal);border-color:var(--seal);color:#fff}
+.btn.small{padding:.2em .7em;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+label.f{display:block;font-size:13px;color:var(--ink2);margin:.7em 0 .2em}
+input[type=text],input[type=password],input[type=datetime-local],select,textarea{
+  width:100%;border:1.5px solid var(--line);border-radius:6px;padding:.45em .6em;background:#fff}
+textarea{resize:vertical;min-height:4.5em}
+input:focus,select:focus,textarea:focus{border-color:var(--ink);outline:none}
+.note{font-size:13px;color:var(--ink2)}
+
+/* ロック画面 */
+#lockScreen{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:repeating-linear-gradient(135deg,#EEF2F6 0 14px,#F4F6F9 14px 28px)}
+.lockcard{background:#fff;border:2px solid var(--ink);border-radius:10px;max-width:420px;width:100%;padding:32px 30px;position:relative}
+.seal{position:absolute;top:-18px;right:22px;width:56px;height:56px;border:3px solid var(--seal);color:var(--seal);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;background:#fff;transform:rotate(-8deg)}
+.lockcard h1{font-size:24px;margin:0 0 .2em;letter-spacing:.05em}
+.lockcard .btn{width:100%;margin-top:1.2em;padding:.7em}
+.err{color:var(--seal);font-size:13px;min-height:1.4em;margin-top:.4em}
+
+/* ヘッダー */
+header.top{display:flex;align-items:center;gap:12px;padding:10px 20px;background:var(--ink);color:#fff;position:sticky;top:0;z-index:10}
+header.top h1{font-size:18px;margin:0;letter-spacing:.08em}
+header.top .sp{flex:1}
+header.top .btn{background:transparent;color:#fff;border-color:#fff}
+header.top .btn:hover{background:#2A4A6E}
+.locktimer{font-size:12px;opacity:.75}
+
+main{max-width:1280px;margin:0 auto;padding:20px}
+
+/* 一覧 */
+.listhead{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.listhead h2{margin:0;font-size:20px;flex:1}
+.reclist{border-top:2px solid var(--ink)}
+.recrow{display:grid;grid-template-columns:150px 1fr 110px 90px;gap:12px;align-items:center;padding:12px 8px;border-bottom:1px solid var(--line);cursor:pointer;background:#fff}
+.recrow:hover{background:var(--panel)}
+.recrow .who{font-weight:700}
+.recrow .sum{font-size:13px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-size:12px;border:1.5px solid currentColor;border-radius:4px;padding:0 .5em;justify-self:start}
+.tag.draft{color:var(--c-st)}
+.tag.fixed{color:var(--ok)}
+.empty{padding:40px 10px;text-align:center;color:var(--ink2)}
+
+/* 編集画面 */
+.edhead{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.edhead h2{margin:0;font-size:20px;flex:1}
+.savestate{font-size:12px;color:var(--ink2)}
+.ed{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start}
+.side section,.mainc section{background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:16px}
+section h3{font-size:15px;margin:0 0 .3em;padding-bottom:.3em;border-bottom:1px solid var(--line)}
+.ivrow{display:flex;gap:6px;margin-bottom:6px;align-items:center}
+.ivrow .dot{width:12px;height:12px;border-radius:50%;flex:none}
+.ivrow input{flex:1}
+
+/* 録音 */
+.recbox{text-align:center}
+.rectime{font-size:34px;font-weight:700;letter-spacing:.06em;font-variant-numeric:tabular-nums;margin:.1em 0}
+.recbox.on .rectime{color:var(--seal)}
+.meter{height:8px;background:var(--panel);border-radius:4px;overflow:hidden;margin:6px 0 10px}
+.meter i{display:block;height:100%;width:0;background:var(--ok);transition:width .08s}
+.recbtns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.progress{margin-top:10px;text-align:left}
+.bar{height:10px;background:var(--panel);border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ink);transition:width .2s}
+audio{width:100%;margin-top:10px}
+
+/* 話者の割り当て */
+.maprow{display:grid;grid-template-columns:70px 1fr;gap:8px;align-items:center;margin-bottom:8px}
+.maprow .sample{grid-column:2;font-size:12px;color:var(--ink2);margin-top:-4px}
+
+/* 記録本文 */
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.utt{display:grid;grid-template-columns:58px 150px 1fr 28px;gap:8px;align-items:start;padding:8px 6px 8px 10px;border-left:5px solid var(--c-un);border-bottom:1px solid var(--panel)}
+.utt.st{background:var(--c-st-bg)}
+.utt .t{font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums;border:none;background:none;padding:.4em 0;text-align:left;text-decoration:underline dotted}
+.utt select{font-size:13px;padding:.3em .4em;font-weight:700}
+.utt textarea{min-height:2.6em;border-color:transparent;background:transparent;padding:.3em .4em}
+.utt textarea:hover{border-color:var(--line)}
+.utt textarea:focus{background:#fff;border-color:var(--ink)}
+.utt .del{border:none;background:none;color:var(--ink2);font-size:18px;line-height:1;padding:.3em 0}
+.utt .del:hover{color:var(--seal)}
+.guide{font-size:13px}
+.guide summary{cursor:pointer;font-weight:700}
+.guide ul{margin:.4em 0 0;padding-left:1.3em}
+
+/* ダイアログ */
+dialog{border:2px solid var(--ink);border-radius:10px;padding:22px 24px;max-width:460px;width:92%}
+dialog::backdrop{background:rgba(30,53,80,.45)}
+dialog h3{margin:0 0 .5em}
+.dlgbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:1.2em}
+
+#printArea{display:none}
+@media (max-width:900px){.ed{grid-template-columns:1fr}.recrow{grid-template-columns:1fr 90px}.recrow .sum,.recrow .d{display:none}}
+@media (max-width:600px){
+  header.top{padding:calc(8px + env(safe-area-inset-top)) 12px 8px;flex-wrap:wrap}
+  main{padding:12px 12px calc(24px + env(safe-area-inset-bottom))}
+  input[type=text],input[type=password],input[type=datetime-local],select,textarea{font-size:16px}
+  .edhead h2{flex-basis:100%;order:-1;font-size:18px}
+  .side section,.mainc section{padding:12px}
+  .utt{grid-template-columns:52px 1fr 32px;grid-template-areas:"t who del" "tx tx tx";padding:8px 4px 8px 8px}
+  .utt .t{grid-area:t}.utt select{grid-area:who;font-size:15px}.utt .del{grid-area:del;font-size:22px}
+  .utt textarea{grid-area:tx;font-size:16px}
+  .rectime{font-size:40px}
+  .recbtns .btn{padding:.7em 1.3em;font-size:16px}
+  .listhead{flex-wrap:wrap}.listhead .btn{width:100%;padding:.7em}
+}
+.ios-only{display:none}
+.is-ios .ios-only{display:block}
+.is-ios .pc-only{display:none}
+@media print{
+  body>*:not(#printArea){display:none!important}
+  #printArea{display:block;font-size:11pt;color:#000}
+  #printArea h1{font-size:16pt;text-align:center}
+  #printArea table{border-collapse:collapse;width:100%;margin-bottom:1em}
+  #printArea td,#printArea th{border:1px solid #000;padding:4px 6px;vertical-align:top;text-align:left}
+  #printArea th{width:7em;background:#eee}
+  #printArea .pu{margin:0 0 .3em}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ロック画面 -->
+<div id="lockScreen">
+  <div class="lockcard">
+    <div class="seal" aria-hidden="true">秘</div>
+    <h1>聞き取り記録</h1>
+    <p class="note" id="lockLead">記録はこの端末の中だけに、暗号化して保存されます。</p>
+    <p class="note ios-only" id="homeHint" style="border:1.5px solid var(--c-st);border-radius:6px;padding:.5em .7em;background:var(--c-st-bg)">
+      Safariの共有ボタンから「ホーム画面に追加」して、ホーム画面のアイコンから開いてください。Safariのまま使うと、しばらく開かなかったときに記録が消えることがあります。</p>
+    <div id="setupBox" class="hidden">
+      <label class="f" for="pw1">パスワードを決めてください（8文字以上）</label>
+      <input type="password" id="pw1" autocomplete="new-password">
+      <label class="f" for="pw2">もう一度入力</label>
+      <input type="password" id="pw2" autocomplete="new-password">
+      <p class="note">パスワードを忘れると記録は取り出せません。紙に控えるなど、学校の規程に沿って管理してください。</p>
+      <button class="btn primary" id="setupBtn">パスワードを設定して始める</button>
+    </div>
+    <div id="unlockBox" class="hidden">
+      <label class="f" for="pw">パスワード</label>
+      <input type="password" id="pw" autocomplete="current-password">
+      <button class="btn primary" id="unlockBtn">ひらく</button>
+      <p class="note" style="margin-top:1.5em"><button class="btn small danger" id="wipeFromLock">パスワードを忘れた（全記録を消して初期化）</button></p>
+    </div>
+    <div class="err" id="lockErr" role="alert"></div>
+  </div>
+</div>
+
+<!-- アプリ本体 -->
+<div id="app" class="hidden">
+  <header class="top">
+    <h1>聞き取り記録</h1>
+    <span class="sp"></span>
+    <span class="locktimer" id="lockTimer"></span>
+    <button class="btn small" id="settingsBtn">設定</button>
+    <button class="btn small" id="lockBtn">ロックする</button>
+  </header>
+  <main>
+    <!-- 一覧 -->
+    <div id="listView">
+      <div class="listhead">
+        <h2>記録の一覧</h2>
+        <button class="btn primary" id="newBtn">新しい聞き取りを始める</button>
+      </div>
+      <div class="reclist" id="recList"></div>
+    </div>
+
+    <!-- 編集 -->
+    <div id="editView" class="hidden">
+      <div class="edhead">
+        <button class="btn small" id="backBtn">一覧へ戻る</button>
+        <h2 id="edTitle">聞き取り記録</h2>
+        <span class="savestate" id="saveState"></span>
+        <select id="fStatus" style="width:auto"><option value="draft">下書き</option><option value="fixed">確定</option></select>
+        <button class="btn small" id="txtBtn">テキストで書き出す</button>
+        <button class="btn small" id="printBtn">印刷</button>
+        <button class="btn small danger" id="delRecBtn">この記録を削除</button>
+      </div>
+      <div class="ed">
+        <div class="side">
+          <section>
+            <h3>基本情報</h3>
+            <label class="f" for="fDate">日時</label>
+            <input type="datetime-local" id="fDate">
+            <label class="f" for="fPlace">場所</label>
+            <input type="text" id="fPlace" placeholder="例：相談室">
+            <label class="f" for="fStudent">聞き取りを受ける人</label>
+            <input type="text" id="fStudent" placeholder="例：中2 A.K（イニシャル推奨）">
+            <label class="f">聞き取り者</label>
+            <div id="ivList"></div>
+            <button class="btn small" id="addIvBtn">聞き取り者を追加</button>
+            <label class="f" for="fSummary">事案の概要</label>
+            <textarea id="fSummary" placeholder="聞き取りの目的・経緯を簡潔に"></textarea>
+          </section>
+
+          <section>
+            <h3>録音と文字起こし</h3>
+            <div class="recbox" id="recBox">
+              <div class="rectime" id="recTime">00:00</div>
+              <div class="meter"><i id="meterBar"></i></div>
+              <div class="recbtns">
+                <button class="btn rec" id="recStart">録音開始</button>
+                <button class="btn hidden" id="recPause">一時停止</button>
+                <button class="btn hidden" id="recStop">録音終了</button>
+              </div>
+              <p class="note" style="margin:.6em 0 0">または <label class="btn small" style="display:inline-block">音声ファイルを選ぶ<input type="file" id="fileIn" accept="audio/*,video/*" class="hidden"></label></p>
+            </div>
+            <audio id="player" controls class="hidden"></audio>
+            <label class="f" for="fModel">文字起こしの精度</label>
+            <select id="fModel">
+              <option value="onnx-community/whisper-base">標準（速い・初回約150MB）</option>
+              <option value="onnx-community/whisper-small">高精度（遅い・初回約500MB）</option>
+            </select>
+            <button class="btn primary" id="procBtn" style="width:100%;margin-top:10px" disabled>声を分けて文字にする</button>
+            <div class="progress hidden" id="progBox">
+              <div class="note" id="progText">準備しています</div>
+              <div class="bar"><i id="progBar"></i></div>
+            </div>
+            <p class="note">音声は外部に送信されません。録音データは保存されず、この画面を離れると消えます。</p>
+            <p class="note ios-only">iPhoneでは、録音中・処理中にほかのアプリへ切り替えたり画面を消したりすると止まります。録音中は画面がつけたままになります。</p>
+          </section>
+
+          <section id="mapSec" class="hidden">
+            <h3>話者の割り当て</h3>
+            <p class="note" style="margin:.2em 0 .6em">声で分けた「話者」がだれかを選ぶと、記録全体に反映されます。</p>
+            <div id="mapList"></div>
+          </section>
+
+          <section>
+            <details class="guide">
+              <summary>聞き取りの留意点</summary>
+              <ul>
+                <li>落ち着ける場所と時間を確保し、本人の安心を優先する</li>
+                <li>「いつ・どこで・だれが・何を」を一つずつ、短い言葉で聞く</li>
+                <li>「〜したの？」のような誘導的な聞き方を避け、本人の言葉のまま記録する</li>
+                <li>絵カードや選択肢などを使った場合は、何を示したかをメモに残す</li>
+                <li>質問役と記録役を事前に決めておく</li>
+                <li>録音することは学校の規程に沿って本人・関係者に伝える</li>
+              </ul>
+            </details>
+          </section>
+        </div>
+
+        <div class="mainc">
+          <section>
+            <h3>記録</h3>
+            <div class="tools">
+              <button class="btn small" id="addUttBtn">発言を追加</button>
+              <span class="note">時刻を押すとその場面を再生できます（録音がある間のみ）。</span>
+            </div>
+            <div id="uttList"></div>
+          </section>
+          <section>
+            <h3>聞き取り後のメモ</h3>
+            <label class="f" for="fMemo">確認できた事実・本人の様子</label>
+            <textarea id="fMemo"></textarea>
+            <label class="f" for="fFollow">今後の対応</label>
+            <textarea id="fFollow"></textarea>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 設定 -->
+<dialog id="setDlg">
+  <h3>設定</h3>
+  <label class="f" for="sLock">操作がないときに自動でロックするまで</label>
+  <select id="sLock"><option value="5">5分</option><option value="10">10分</option><option value="15">15分</option><option value="30">30分</option></select>
+  <label class="f" for="sOld">パスワードの変更（今のパスワード）</label>
+  <input type="password" id="sOld" autocomplete="current-password">
+  <label class="f" for="sNew">新しいパスワード（8文字以上）</label>
+  <input type="password" id="sNew" autocomplete="new-password">
+  <button class="btn small" id="chPwBtn" style="margin-top:8px">パスワードを変更</button>
+  <div class="err" id="setErr"></div>
+  <hr style="border:none;border-top:1px solid var(--line);margin:1em 0">
+  <button class="btn small danger" id="wipeBtn">すべての記録を消して初期化</button>
+  <div class="dlgbtns"><button class="btn primary" id="setClose">閉じる</button></div>
+</dialog>
+
+<!-- 確認ダイアログ -->
+<dialog id="cfmDlg">
+  <h3 id="cfmTitle">確認</h3>
+  <p id="cfmMsg"></p>
+  <div class="dlgbtns"><button class="btn" id="cfmNo">やめる</button><button class="btn danger" id="cfmYes">実行する</button></div>
+</dialog>
+
+<div id="printArea"></div>
+<script>
+'use strict';
+/* ========== 基本ユーティリティ ========== */
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder(), dec = new TextDecoder();
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtT = sec => { sec = Math.max(0, Math.floor(sec || 0)); const m = Math.floor(sec / 60), s = sec % 60; return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0'); };
+const IV_COLORS = ['var(--c-i1)','var(--c-i2)','var(--c-i3)','var(--c-i4)'];
+
+/* ========== IndexedDB ========== */
+const DB = {
+  db: null,
+  open() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('kikitori-db', 1);
+      r.onupgradeneeded = () => {
+        const d = r.result;
+        d.createObjectStore('meta');
+        d.createObjectStore('records', { keyPath: 'id' });
+      };
+      r.onsuccess = () => { this.db = r.result; res(); };
+      r.onerror = () => rej(r.error);
+    });
+  },
+  tx(store, mode, fn) {
+    return new Promise((res, rej) => {
+      const t = this.db.transaction(store, mode), s = t.objectStore(store);
+      const out = fn(s);
+      t.oncomplete = () => res(out && 'result' in out ? out.result : undefined);
+      t.onerror = () => rej(t.error);
+    });
+  },
+  get: (st, k) => DB.tx(st, 'readonly', s => s.get(k)),
+  put: (st, v, k) => DB.tx(st, 'readwrite', s => k === undefined ? s.put(v) : s.put(v, k)),
+  del: (st, k) => DB.tx(st, 'readwrite', s => s.delete(k)),
+  all: st => DB.tx(st, 'readonly', s => s.getAll()),
+  clear: st => DB.tx(st, 'readwrite', s => s.clear()),
+};
+
+/* ========== 暗号化（AES-GCM + PBKDF2） ========== */
+async function deriveKey(pw, salt) {
+  const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-256' },
+    base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function encObj(key, obj) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(JSON.stringify(obj)));
+  return { iv, ct };
+}
+async function decObj(key, box) {
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: box.iv }, key, box.ct);
+  return JSON.parse(dec.decode(pt));
+}
+
+/* ========== 状態 ========== */
+const S = {
+  key: null,          // 復号用の鍵（メモリ上のみ）
+  records: [],        // 復号済みの記録
+  cur: null,          // 編集中の記録
+  lockMin: 10,
+  lastAct: Date.now(),
+  busy: false,        // 録音中・処理中は自動ロックしない
+  proc: false,
+};
+
+/* ========== ロック・初期設定 ========== */
+async function initLock() {
+  await DB.open();
+  const set = await DB.get('meta', 'settings');
+  if (set && set.lockMin) S.lockMin = set.lockMin;
+  const verifier = await DB.get('meta', 'verifier');
+  $('setupBox').classList.toggle('hidden', !!verifier);
+  $('unlockBox').classList.toggle('hidden', !verifier);
+  (verifier ? $('pw') : $('pw1')).focus();
+}
+
+async function setupPassword() {
+  const a = $('pw1').value, b = $('pw2').value;
+  if (a.length < 8) return lockErr('パスワードは8文字以上にしてください。');
+  if (a !== b) return lockErr('2回の入力が一致しません。');
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await deriveKey(a, salt);
+  await DB.put('meta', salt, 'salt');
+  await DB.put('meta', await encObj(key, { ok: true }), 'verifier');
+  $('pw1').value = $('pw2').value = '';
+  await openApp(key);
+}
+
+async function unlock() {
+  const pw = $('pw').value;
+  if (!pw) return;
+  $('unlockBtn').disabled = true; lockErr('');
+  try {
+    const salt = await DB.get('meta', 'salt');
+    const key = await deriveKey(pw, salt);
+    await decObj(key, await DB.get('meta', 'verifier'));
+    $('pw').value = '';
+    await openApp(key);
+  } catch (e) {
+    lockErr('パスワードが違います。');
+  } finally { $('unlockBtn').disabled = false; }
+}
+
+function lockErr(m) { $('lockErr').textContent = m; }
+
+async function openApp(key) {
+  S.key = key;
+  S.lastAct = Date.now();
+  const rows = await DB.all('records');
+  S.records = [];
+  for (const r of rows) { try { S.records.push(await decObj(key, r)); } catch (e) { console.warn('復号できない記録', r.id); } }
+  $('lockScreen').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  showList();
+}
+
+async function lockApp() {
+  if (S.cur) await flushSave();
+  stopRecordingHard();
+  clearAudio();
+  S.key = null; S.records = []; S.cur = null;
+  $('app').classList.add('hidden');
+  $('lockScreen').classList.remove('hidden');
+  $('setupBox').classList.add('hidden');
+  $('unlockBox').classList.remove('hidden');
+  lockErr('');
+  $('pw').focus();
+}
+
+/* 操作がない時間を見て自動ロック */
+['pointerdown', 'keydown', 'wheel', 'input'].forEach(ev => addEventListener(ev, () => { S.lastAct = Date.now(); }, { passive: true }));
+setInterval(() => {
+  if (!S.key) return;
+  if (S.busy) { S.lastAct = Date.now(); $('lockTimer').textContent = ''; return; }
+  const left = S.lockMin * 60000 - (Date.now() - S.lastAct);
+  $('lockTimer').textContent = left < 60000 ? 'まもなく自動ロック' : '';
+  if (left <= 0) lockApp();
+}, 5000);
+
+/* ========== 保存 ========== */
+async function saveRecord(rec) {
+  rec.updatedAt = Date.now();
+  const box = await encObj(S.key, rec);
+  await DB.put('records', { id: rec.id, iv: box.iv, ct: box.ct });
+  const i = S.records.findIndex(r => r.id === rec.id);
+  if (i >= 0) S.records[i] = rec; else S.records.push(rec);
+}
+let saveTimer = null;
+function queueSave() {
+  if (!S.cur) return;
+  $('saveState').textContent = '保存待ち…';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushSave, 800);
+}
+async function flushSave() {
+  clearTimeout(saveTimer);
+  if (!S.cur || !S.key) return;
+  await saveRecord(S.cur);
+  $('saveState').textContent = '暗号化して保存済み ' + new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+}
+
+/* ========== 一覧 ========== */
+function showList() {
+  $('editView').classList.add('hidden');
+  $('listView').classList.remove('hidden');
+  const list = [...S.records].sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.updatedAt - a.updatedAt);
+  $('recList').innerHTML = list.length ? list.map(r => `
+    <div class="recrow" tabindex="0" data-id="${r.id}">
+      <span class="d">${esc((r.date || '').replace('T', ' '))}</span>
+      <span><span class="who">${esc(r.student || '（未入力）')}</span><div class="sum">${esc(r.summary || '')}</div></span>
+      <span class="note">${r.utterances.length}件の発言</span>
+      <span class="tag ${r.status === 'fixed' ? 'fixed' : 'draft'}">${r.status === 'fixed' ? '確定' : '下書き'}</span>
+    </div>`).join('')
+    : '<div class="empty">まだ記録はありません。「新しい聞き取りを始める」から作成できます。</div>';
+}
+$('recList').addEventListener('click', e => { const row = e.target.closest('.recrow'); if (row) openRecord(row.dataset.id); });
+$('recList').addEventListener('keydown', e => { if (e.key === 'Enter') { const row = e.target.closest('.recrow'); if (row) openRecord(row.dataset.id); } });
+
+function newRecord() {
+  const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  const rec = {
+    id: uid(), createdAt: Date.now(), updatedAt: Date.now(), status: 'draft',
+    date: d.toISOString().slice(0, 16), place: '', student: '', summary: '', memo: '', follow: '',
+    interviewers: [{ id: 'i' + uid(), name: '' }, { id: 'i' + uid(), name: '' }],
+    speakerMap: {}, speakerSamples: {}, utterances: [],
+  };
+  S.records.push(rec);
+  openRecord(rec.id);
+  saveRecord(rec);
+}
+
+/* ========== 確認ダイアログ ========== */
+function confirmDlg(title, msg, yesLabel = '実行する') {
+  return new Promise(res => {
+    $('cfmTitle').textContent = title; $('cfmMsg').textContent = msg; $('cfmYes').textContent = yesLabel;
+    const d = $('cfmDlg');
+    const done = v => { d.close(); $('cfmYes').onclick = $('cfmNo').onclick = null; res(v); };
+    $('cfmYes').onclick = () => done(true); $('cfmNo').onclick = () => done(false);
+    d.showModal();
+  });
+}
+
+/* ========== 設定 ========== */
+$('settingsBtn').onclick = () => { $('sLock').value = String(S.lockMin); $('setErr').textContent = ''; $('setDlg').showModal(); };
+$('setClose').onclick = () => $('setDlg').close();
+$('sLock').onchange = async () => { S.lockMin = +$('sLock').value; await DB.put('meta', { lockMin: S.lockMin }, 'settings'); };
+$('chPwBtn').onclick = async () => {
+  const o = $('sOld').value, n = $('sNew').value;
+  if (n.length < 8) return $('setErr').textContent = '新しいパスワードは8文字以上にしてください。';
+  try { await decObj(await deriveKey(o, await DB.get('meta', 'salt')), await DB.get('meta', 'verifier')); }
+  catch (e) { return $('setErr').textContent = '今のパスワードが違います。'; }
+  if (S.cur) await flushSave();
+  const salt = crypto.getRandomValues(new Uint8Array(16)), key = await deriveKey(n, salt);
+  const boxes = [];
+  for (const r of S.records) { const b = await encObj(key, r); boxes.push({ id: r.id, iv: b.iv, ct: b.ct }); }
+  const vb = await encObj(key, { ok: true });
+  await DB.clear('records');
+  for (const b of boxes) await DB.put('records', b);
+  await DB.put('meta', salt, 'salt'); await DB.put('meta', vb, 'verifier');
+  S.key = key; $('sOld').value = $('sNew').value = '';
+  $('setErr').textContent = 'パスワードを変更しました。';
+};
+async function wipeAll() {
+  const ok = await confirmDlg('すべて初期化', 'このパソコンに保存したすべての聞き取り記録とパスワードを消去します。元に戻せません。', '消去する');
+  if (!ok) return;
+  await DB.clear('records'); await DB.clear('meta');
+  S.key = null; S.records = []; S.cur = null;
+  location.reload();
+}
+$('wipeBtn').onclick = () => { $('setDlg').close(); wipeAll(); };
+$('wipeFromLock').onclick = wipeAll;
+
+$('setupBtn').onclick = setupPassword;
+$('unlockBtn').onclick = unlock;
+$('pw').addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
+$('pw2').addEventListener('keydown', e => { if (e.key === 'Enter') setupPassword(); });
+$('lockBtn').onclick = lockApp;
+$('newBtn').onclick = newRecord;
+</script>
+<script>
+'use strict';
+/* ========== 編集画面 ========== */
+function people(rec) {
+  const p = [{ id: 'student', name: rec.student ? rec.student + '（本人）' : '聞き取りを受ける人', color: 'var(--c-st)' }];
+  rec.interviewers.forEach((iv, i) => p.push({ id: iv.id, name: iv.name || '聞き取り者' + (i + 1), color: IV_COLORS[i % 4] }));
+  return p;
+}
+function personOf(rec, id) { return people(rec).find(p => p.id === id) || { id: '', name: '不明', color: 'var(--c-un)' }; }
+
+function openRecord(id) {
+  S.cur = S.records.find(r => r.id === id);
+  if (!S.cur) return;
+  const r = S.cur;
+  $('listView').classList.add('hidden');
+  $('editView').classList.remove('hidden');
+  $('fDate').value = r.date; $('fPlace').value = r.place; $('fStudent').value = r.student;
+  $('fSummary').value = r.summary; $('fMemo').value = r.memo; $('fFollow').value = r.follow;
+  $('fStatus').value = r.status; $('saveState').textContent = '';
+  renderIv(); renderMap(); renderUtts(); updateTitle();
+  scrollTo(0, 0);
+}
+function updateTitle() { $('edTitle').textContent = (S.cur.student || '（未入力）') + ' の聞き取り記録'; }
+
+/* 基本情報の入力 → 保存 */
+[['fDate', 'date'], ['fPlace', 'place'], ['fStudent', 'student'], ['fSummary', 'summary'], ['fMemo', 'memo'], ['fFollow', 'follow'], ['fStatus', 'status']]
+  .forEach(([el, k]) => $(el).addEventListener('input', () => {
+    S.cur[k] = $(el).value; queueSave();
+    if (k === 'student') { updateTitle(); renderMap(); renderUtts(); }
+  }));
+
+function renderIv() {
+  $('ivList').innerHTML = S.cur.interviewers.map((iv, i) => `
+    <div class="ivrow"><span class="dot" style="background:${IV_COLORS[i % 4]}"></span>
+      <input type="text" data-i="${i}" value="${esc(iv.name)}" placeholder="聞き取り者${i + 1}の名前" aria-label="聞き取り者${i + 1}">
+      ${S.cur.interviewers.length > 1 ? `<button class="btn small" data-rm="${i}" aria-label="削除">×</button>` : ''}</div>`).join('');
+}
+$('ivList').addEventListener('input', e => {
+  const i = e.target.dataset.i; if (i === undefined) return;
+  S.cur.interviewers[i].name = e.target.value; queueSave(); renderMap(); refreshUttSelects();
+});
+$('ivList').addEventListener('click', async e => {
+  const i = e.target.dataset.rm; if (i === undefined) return;
+  const iv = S.cur.interviewers[i];
+  if (S.cur.utterances.some(u => u.who === iv.id) && !await confirmDlg('聞き取り者を削除', 'この人の発言は「不明」になります。削除しますか？', '削除する')) return;
+  S.cur.interviewers.splice(i, 1);
+  S.cur.utterances.forEach(u => { if (u.who === iv.id) u.who = ''; });
+  Object.keys(S.cur.speakerMap).forEach(k => { if (S.cur.speakerMap[k] === iv.id) S.cur.speakerMap[k] = ''; });
+  queueSave(); renderIv(); renderMap(); renderUtts();
+});
+$('addIvBtn').onclick = () => {
+  if (S.cur.interviewers.length >= 4) return alert('聞き取り者は4人まで登録できます。');
+  S.cur.interviewers.push({ id: 'i' + uid(), name: '' }); queueSave(); renderIv(); renderMap(); refreshUttSelects();
+};
+
+/* ========== 話者の割り当て ========== */
+function optionsHtml(sel) {
+  return people(S.cur).map(p => `<option value="${p.id}" ${p.id === sel ? 'selected' : ''}>${esc(p.name)}</option>`).join('')
+    + `<option value="" ${!sel ? 'selected' : ''}>不明</option>`;
+}
+function renderMap() {
+  const keys = Object.keys(S.cur.speakerSamples || {}).sort();
+  $('mapSec').classList.toggle('hidden', !keys.length);
+  $('mapList').innerHTML = keys.map((k, i) => `
+    <div class="maprow"><span>話者${i + 1}</span>
+      <select data-sp="${k}">${optionsHtml(S.cur.speakerMap[k] || '')}</select>
+      <span class="sample">例：「${esc((S.cur.speakerSamples[k] || '').slice(0, 30))}」</span></div>`).join('');
+}
+$('mapList').addEventListener('change', e => {
+  const k = e.target.dataset.sp; if (!k) return;
+  S.cur.speakerMap[k] = e.target.value;
+  S.cur.utterances.forEach(u => { if (u.raw === k && !u.manual) u.who = e.target.value; });
+  queueSave(); renderUtts();
+});
+
+/* ========== 記録本文 ========== */
+function renderUtts() {
+  const r = S.cur;
+  if (!r.utterances.length) {
+    $('uttList').innerHTML = '<div class="empty">録音して「声を分けて文字にする」を押すと、ここに発言が並びます。手入力する場合は「発言を追加」を押してください。</div>';
+    return;
+  }
+  $('uttList').innerHTML = r.utterances.map((u, i) => {
+    const p = personOf(r, u.who);
+    return `<div class="utt ${u.who === 'student' ? 'st' : ''}" style="border-left-color:${p.color}" data-i="${i}">
+      <button class="t" data-play="${u.start ?? ''}" title="この場面を再生">${u.start == null ? '—' : fmtT(u.start)}</button>
+      <select data-who="${i}" aria-label="話した人">${optionsHtml(u.who)}</select>
+      <textarea data-tx="${i}" rows="1" aria-label="発言内容">${esc(u.text)}</textarea>
+      <button class="del" data-del="${i}" aria-label="この発言を削除">×</button></div>`;
+  }).join('');
+  $('uttList').querySelectorAll('textarea').forEach(autoGrow);
+}
+function refreshUttSelects() {
+  $('uttList').querySelectorAll('select[data-who]').forEach(s => { s.innerHTML = optionsHtml(S.cur.utterances[s.dataset.who].who); });
+}
+function autoGrow(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }
+
+$('uttList').addEventListener('input', e => {
+  const i = e.target.dataset.tx; if (i === undefined) return;
+  S.cur.utterances[i].text = e.target.value; autoGrow(e.target); queueSave();
+});
+$('uttList').addEventListener('change', e => {
+  const i = e.target.dataset.who; if (i === undefined) return;
+  const u = S.cur.utterances[i]; u.who = e.target.value; u.manual = true;
+  const row = e.target.closest('.utt'), p = personOf(S.cur, u.who);
+  row.style.borderLeftColor = p.color; row.classList.toggle('st', u.who === 'student');
+  queueSave();
+});
+$('uttList').addEventListener('click', async e => {
+  if (e.target.dataset.del !== undefined) {
+    if (!await confirmDlg('発言を削除', 'この発言を記録から削除しますか？', '削除する')) return;
+    S.cur.utterances.splice(+e.target.dataset.del, 1); queueSave(); renderUtts();
+  } else if (e.target.dataset.play !== undefined && e.target.dataset.play !== '') {
+    const pl = $('player'); if (!pl.src) return;
+    pl.currentTime = +e.target.dataset.play; pl.play();
+  }
+});
+$('addUttBtn').onclick = () => {
+  S.cur.utterances.push({ id: uid(), start: null, end: null, raw: '', who: '', manual: true, text: '' });
+  queueSave(); renderUtts();
+  const ts = $('uttList').querySelectorAll('textarea'); ts[ts.length - 1].focus();
+};
+
+$('backBtn').onclick = async () => {
+  if (A.recorder && A.recorder.state !== 'inactive') { if (!await confirmDlg('録音中です', '録音を止めて一覧へ戻りますか？録音データは消えます。', '戻る')) return; }
+  else if (A.blob && !await confirmDlg('一覧へ戻る', '録音データは保存されないため、戻ると再生や再処理はできなくなります。記録の文字は保存されています。', '戻る')) return;
+  await flushSave(); stopRecordingHard(); clearAudio(); S.cur = null; showList();
+};
+$('delRecBtn').onclick = async () => {
+  if (!await confirmDlg('記録を削除', 'この聞き取り記録を完全に削除します。元に戻せません。', '削除する')) return;
+  clearTimeout(saveTimer);
+  await DB.del('records', S.cur.id);
+  S.records = S.records.filter(r => r.id !== S.cur.id);
+  stopRecordingHard(); clearAudio(); S.cur = null; showList();
+};
+
+/* ========== 録音 ========== */
+const A = { stream: null, recorder: null, chunks: [], blob: null, url: '', t0: 0, acc: 0, timer: null, ctx: null, raf: 0 };
+
+$('recStart').onclick = async () => {
+  if (A.blob && !await confirmDlg('録音し直す', '今の録音データは消えます（記録の文字は残ります）。新しく録音しますか？', '録音する')) return;
+  try {
+    A.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, noiseSuppression: true, autoGainControl: true } });
+  } catch (e) { return alert('マイクを使えません。ブラウザのアドレスバー横のマイク許可を確認してください。'); }
+  clearAudio();
+  A.chunks = [];
+  A.recorder = new MediaRecorder(A.stream);
+  A.recorder.ondataavailable = e => { if (e.data.size) A.chunks.push(e.data); };
+  A.recorder.onstop = () => {
+    A.blob = new Blob(A.chunks, { type: A.recorder.mimeType || 'audio/webm' });
+    setAudio(A.blob);
+  };
+  A.recorder.start(1000);
+  A.acc = 0; A.t0 = Date.now(); S.busy = true; keepAwake(true);
+  A.timer = setInterval(() => { $('recTime').textContent = fmtT((A.acc + (A.recorder.state === 'recording' ? Date.now() - A.t0 : 0)) / 1000); }, 250);
+  startMeter();
+  $('recBox').classList.add('on');
+  $('recStart').classList.add('hidden'); $('recPause').classList.remove('hidden'); $('recStop').classList.remove('hidden');
+  $('fileIn').disabled = true; $('procBtn').disabled = true;
+};
+$('recPause').onclick = () => {
+  if (A.recorder.state === 'recording') { A.recorder.pause(); A.acc += Date.now() - A.t0; $('recPause').textContent = '再開'; $('recBox').classList.remove('on'); }
+  else { A.recorder.resume(); A.t0 = Date.now(); $('recPause').textContent = '一時停止'; $('recBox').classList.add('on'); }
+};
+$('recStop').onclick = () => { stopRecordingHard(true); };
+
+function stopRecordingHard(keep) {
+  if (A.recorder && A.recorder.state !== 'inactive') {
+    if (!keep) A.recorder.onstop = null;
+    A.recorder.stop();
+  }
+  if (A.stream) A.stream.getTracks().forEach(t => t.stop());
+  A.stream = null; clearInterval(A.timer); stopMeter();
+  if (!S.proc) S.busy = false;
+  $('recBox').classList.remove('on');
+  $('recStart').classList.remove('hidden'); $('recPause').classList.add('hidden'); $('recStop').classList.add('hidden');
+  $('recPause').textContent = '一時停止'; $('fileIn').disabled = false;
+}
+function startMeter() {
+  A.ctx = new AudioContext();
+  const an = A.ctx.createAnalyser(); an.fftSize = 512;
+  A.ctx.createMediaStreamSource(A.stream).connect(an);
+  const buf = new Uint8Array(an.fftSize);
+  const loop = () => {
+    an.getByteTimeDomainData(buf);
+    let m = 0; for (const v of buf) m = Math.max(m, Math.abs(v - 128));
+    $('meterBar').style.width = Math.min(100, m / 128 * 160) + '%';
+    A.raf = requestAnimationFrame(loop);
+  };
+  loop();
+}
+function stopMeter() { cancelAnimationFrame(A.raf); if (A.ctx) A.ctx.close(); A.ctx = null; $('meterBar').style.width = '0'; }
+
+function setAudio(blob) {
+  A.blob = blob;
+  if (A.url) URL.revokeObjectURL(A.url);
+  A.url = URL.createObjectURL(blob);
+  $('player').src = A.url; $('player').classList.remove('hidden');
+  $('procBtn').disabled = false;
+}
+function clearAudio() {
+  if (A.url) URL.revokeObjectURL(A.url);
+  A.url = ''; A.blob = null;
+  const pl = $('player'); pl.pause(); pl.removeAttribute('src'); pl.load(); pl.classList.add('hidden');
+  $('procBtn').disabled = true; $('recTime').textContent = '00:00';
+}
+$('fileIn').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  clearAudio(); setAudio(f); e.target.value = '';
+};
+addEventListener('beforeunload', e => { if (A.blob || (A.recorder && A.recorder.state !== 'inactive')) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ========== 話者分離＋文字起こし（ブラウザ内で処理） ========== */
+const WORKER_SRC = `
+const SEG = 'onnx-community/pyannote-segmentation-3.0';
+let T = null, segProc = null, segModel = null, asr = null, asrId = '';
+const post = m => self.postMessage(m);
+const progress_callback = p => { if (p.status === 'progress') post({ type: 'dl', file: p.file, progress: p.progress }); };
+self.onmessage = async e => {
+  const { audio, model } = e.data;
+  try {
+    if (!T) {
+      post({ type: 'stage', text: 'AIの部品を読み込んでいます', pct: 2 });
+      T = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.6');
+      T.env.allowLocalModels = false;
+    }
+    const { pipeline, AutoProcessor, AutoModelForAudioFrameClassification } = T;
+    let device = 'wasm';
+    try { if (navigator.gpu && await navigator.gpu.requestAdapter()) device = 'webgpu'; } catch (_) {}
+    post({ type: 'stage', text: '話者を分けるAIを準備しています', pct: 3 });
+    if (!segModel) {
+      segProc = await AutoProcessor.from_pretrained(SEG, { progress_callback });
+      segModel = await AutoModelForAudioFrameClassification.from_pretrained(SEG, { device: 'wasm', dtype: 'fp32', progress_callback });
+    }
+    post({ type: 'stage', text: '声の特徴で話者を分けています', pct: 10 });
+    const inputs = await segProc(audio);
+    const { logits } = await segModel(inputs);
+    const segs = segProc.post_process_speaker_diarization(logits, audio.length)[0];
+    const labels = segModel.config.id2label || {};
+    post({ type: 'stage', text: '文字起こしのAIを準備しています（' + (device === 'webgpu' ? 'GPU使用' : 'CPU使用') + '）', pct: 20 });
+    if (!asr || asrId !== model) {
+      asr = await pipeline('automatic-speech-recognition', model, {
+        device, progress_callback,
+        dtype: device === 'webgpu' ? { encoder_model: 'fp32', decoder_model_merged: 'q4' } : 'q8',
+      });
+      asrId = model;
+    }
+    post({ type: 'stage', text: '文字起こしをしています（録音の長さによって数分かかります）', pct: 30, asr: true });
+    const out = await asr(audio, { language: 'japanese', task: 'transcribe', return_timestamps: true, chunk_length_s: 30, stride_length_s: 5 });
+    post({ type: 'done', segs, labels, chunks: out.chunks || [{ timestamp: [0, null], text: out.text }] });
+  } catch (err) {
+    post({ type: 'error', message: String(err && err.message || err) });
+  }
+};`;
+let worker = null;
+function getWorker() {
+  if (!worker) worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' })));
+  return worker;
+}
+
+async function decodeTo16k(blob) {
+  // 端末標準のサンプリング周波数で読み込み、自前で16kHz・モノラルに変換（Safari対策）
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  let ab;
+  try {
+    const buf = await blob.arrayBuffer();
+    ab = await new Promise((res, rej) => { const p = ctx.decodeAudioData(buf, res, rej); if (p && p.then) p.then(res, rej); });
+  } finally { ctx.close(); }
+  const n = ab.length, ch = ab.numberOfChannels, mono = new Float32Array(n);
+  for (let c = 0; c < ch; c++) { const d = ab.getChannelData(c); for (let i = 0; i < n; i++) mono[i] += d[i] / ch; }
+  const ratio = ab.sampleRate / 16000;
+  if (ratio === 1) return mono;
+  const out = new Float32Array(Math.floor(n / ratio));
+  for (let i = 0; i < out.length; i++) {
+    // 区間平均で間引く（高い音の折り返しノイズを抑える）
+    const s0 = Math.floor(i * ratio), s1 = Math.min(n, Math.floor((i + 1) * ratio));
+    let sum = 0; for (let j = s0; j < s1; j++) sum += mono[j];
+    out[i] = sum / Math.max(1, s1 - s0);
+  }
+  return out;
+}
+
+function prog(text, pct) {
+  $('progBox').classList.remove('hidden');
+  if (text) $('progText').textContent = text;
+  if (pct != null) $('progBar').style.width = pct + '%';
+}
+
+$('procBtn').onclick = async () => {
+  if (!A.blob) return;
+  if (S.cur.utterances.some(u => u.start != null) &&
+      !await confirmDlg('文字起こしをやり直す', '今の自動記録（手で追加した発言以外）を置き換えます。よろしいですか？', '実行する')) return;
+  const recId = S.cur.id;
+  S.proc = true; S.busy = true; keepAwake(true);
+  $('procBtn').disabled = true; $('recStart').disabled = true; $('fileIn').disabled = true;
+  let audio;
+  try {
+    prog('音声を読み込んでいます', 1);
+    audio = await decodeTo16k(A.blob);
+  } catch (e) { endProc(); return prog('この音声ファイルは読み込めませんでした。録音し直すか、別の形式（mp3・m4a・wav）を試してください。', 0); }
+  const dur = audio.length / 16000;
+  let asrTimer = null;
+  const w = getWorker();
+  w.onmessage = ev => {
+    const m = ev.data;
+    if (m.type === 'stage') {
+      prog(m.text, m.pct);
+      if (m.asr) { const t0 = Date.now(), est = Math.max(20, dur * 0.6) * 1000;
+        asrTimer = setInterval(() => prog(null, Math.min(95, 30 + (Date.now() - t0) / est * 65)), 1000); }
+    } else if (m.type === 'dl') {
+      prog('AIのデータをダウンロード中（初回のみ） ' + Math.round(m.progress || 0) + '%', null);
+    } else if (m.type === 'done') {
+      clearInterval(asrTimer);
+      const rec = S.records.find(r => r.id === recId);
+      if (rec) { applyResult(rec, m, dur); saveRecord(rec); if (S.cur && S.cur.id === recId) { renderMap(); renderUtts(); } }
+      prog('完了しました。話者の割り当てと内容を確認してください。', 100);
+      endProc();
+    } else if (m.type === 'error') {
+      clearInterval(asrTimer);
+      prog('処理に失敗しました：' + m.message + '（ネット接続・空き容量・ブラウザを確認してください）', 0);
+      endProc();
+    }
+  };
+  w.onerror = ev => {
+    ev.preventDefault(); clearInterval(asrTimer);
+    prog('AIの部品を読み込めませんでした。インターネットに接続して、もう一度押してください。', 0);
+    worker.terminate(); worker = null; endProc();
+  };
+  w.postMessage({ audio, model: $('fModel').value }, [audio.buffer]);
+};
+function endProc() {
+  S.proc = false; S.busy = false;
+  $('procBtn').disabled = !A.blob; $('recStart').disabled = false; $('fileIn').disabled = false;
+}
+
+/* 話者分離の結果と文字起こしの結果を突き合わせる */
+const HALLU = /ご視聴ありがとうございました|チャンネル登録|字幕は/;
+function spkKey(id, labels) {
+  const lb = labels[id];
+  if (typeof lb === 'string') { const m = lb.match(/SPEAKER_?(\d+)/i); return m ? 'S' + m[1] : null; }
+  return ({ 1: 'S1', 2: 'S2', 3: 'S3', 4: 'S1', 5: 'S1', 6: 'S2' })[id] || null;
+}
+function applyResult(rec, m, dur) {
+  const segs = m.segs.map(s => ({ ...s, k: spkKey(s.id, m.labels) })).filter(s => s.k);
+  const items = [];
+  for (const c of m.chunks) {
+    const text = (c.text || '').trim();
+    if (!text || HALLU.test(text)) continue;
+    const st = c.timestamp[0] ?? 0, en = c.timestamp[1] ?? dur;
+    const ov = {};
+    for (const s of segs) { const o = Math.min(en, s.end) - Math.max(st, s.start); if (o > 0) ov[s.k] = (ov[s.k] || 0) + o; }
+    let k = Object.keys(ov).sort((a, b) => ov[b] - ov[a])[0];
+    if (!k && segs.length) k = segs.reduce((b, s) => Math.abs(s.start - st) < Math.abs(b.start - st) ? s : b).k;
+    items.push({ start: st, end: en, raw: k || '', text });
+  }
+  // 同じ話者が続く短い区切りはまとめる
+  const merged = [];
+  for (const it of items) {
+    const last = merged[merged.length - 1];
+    if (last && last.raw === it.raw && it.start - last.end < 1.5) { last.text += it.text; last.end = it.end; }
+    else merged.push({ ...it });
+  }
+  // 話者の例文（最も長い発言）
+  const samples = {};
+  merged.forEach(u => { if (u.raw && (!samples[u.raw] || u.text.length > samples[u.raw].length)) samples[u.raw] = u.text; });
+  rec.speakerSamples = samples;
+  Object.keys(samples).forEach(k => { if (!(k in rec.speakerMap)) rec.speakerMap[k] = ''; });
+  const manual = rec.utterances.filter(u => u.start == null);
+  rec.utterances = merged.map(u => ({ id: uid(), ...u, who: rec.speakerMap[u.raw] || '', manual: false })).concat(manual);
+}
+
+/* ========== 書き出し・印刷 ========== */
+function plainText(r) {
+  const ivs = people(r).filter(p => p.id !== 'student').map(p => p.name).join('、');
+  const lines = [
+    '聞き取り記録', '',
+    '日時：' + (r.date || '').replace('T', ' '), '場所：' + r.place, '聞き取りを受ける人：' + r.student, '聞き取り者：' + ivs,
+    '事案の概要：' + r.summary, '', '―― 記録 ――',
+    ...r.utterances.map(u => (u.start == null ? '' : '[' + fmtT(u.start) + '] ') + personOf(r, u.who).name + '：' + u.text),
+    '', '―― 確認できた事実・本人の様子 ――', r.memo, '', '―― 今後の対応 ――', r.follow,
+  ];
+  return lines.join('\r\n');
+}
+$('txtBtn').onclick = async () => {
+  if (!await confirmDlg('テキストで書き出す', '書き出したファイルは暗号化されません。保存場所と取り扱いは学校の規程に従ってください。', '書き出す')) return;
+  await flushSave();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff' + plainText(S.cur)], { type: 'text/plain' }));
+  a.download = '聞き取り記録_' + (S.cur.date || '').slice(0, 10) + '.txt';
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+$('printBtn').onclick = () => {
+  const r = S.cur, ivs = people(r).filter(p => p.id !== 'student').map(p => esc(p.name)).join('、');
+  $('printArea').innerHTML = `<h1>聞き取り記録</h1><table>
+    <tr><th>日時</th><td>${esc((r.date || '').replace('T', ' '))}</td></tr><tr><th>場所</th><td>${esc(r.place)}</td></tr>
+    <tr><th>対象</th><td>${esc(r.student)}</td></tr><tr><th>聞き取り者</th><td>${ivs}</td></tr>
+    <tr><th>概要</th><td>${esc(r.summary).replace(/\n/g, '<br>')}</td></tr></table>
+    <h2 style="font-size:12pt">記録</h2>${r.utterances.map(u => `<p class="pu">${u.start == null ? '' : '[' + fmtT(u.start) + '] '}<b>${esc(personOf(r, u.who).name)}</b>：${esc(u.text)}</p>`).join('')}
+    <table style="margin-top:1em"><tr><th>確認事項</th><td>${esc(r.memo).replace(/\n/g, '<br>')}</td></tr>
+    <tr><th>今後の対応</th><td>${esc(r.follow).replace(/\n/g, '<br>')}</td></tr></table>`;
+  window.print();
+};
+
+/* ========== iPhone・iPad対応 ========== */
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_STANDALONE = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+if (IS_IOS) {
+  document.documentElement.classList.add('is-ios');
+  if (IS_STANDALONE) $('homeHint').classList.add('hidden');
+  // iPhoneはメモリが少ないため、高精度は選べるが注意を出す
+  $('fModel').options[1].textContent = '高精度（iPhoneでは途中で止まることがあります）';
+}
+// 記録をブラウザに自動で消されにくくする
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+// 録音中・処理中は画面を消さない
+let wakeLock = null;
+async function keepAwake(on) {
+  try {
+    if (on && !wakeLock && 'wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch (e) { /* 対応していない端末では何もしない */ }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.busy) keepAwake(true); });
+setInterval(() => keepAwake(!!S.busy), 3000);
+
+initLock().catch(e => lockErr('このブラウザでは保存機能が使えません：' + e.message));
+</script>
+</body>
+</html>
