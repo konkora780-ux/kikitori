@@ -245,6 +245,7 @@ dialog h3{margin:0 0 .5em}
             <label class="f" for="fModel">文字起こしの精度</label>
             <select id="fModel">
               <option value="onnx-community/whisper-base">標準（速い・初回約150MB）</option>
+              <option value="onnx-community/whisper-tiny">軽量（iPhone向け・精度は低め・初回約80MB）</option>
               <option value="onnx-community/whisper-small">高精度（遅い・初回約500MB）</option>
             </select>
             <button class="btn primary" id="procBtn" style="width:100%;margin-top:10px" disabled>声を分けて文字にする</button>
@@ -783,7 +784,7 @@ let T = null, segProc = null, segModel = null, asr = null, asrId = '';
 const post = m => self.postMessage(m);
 const progress_callback = p => { if (p.status === 'progress') post({ type: 'dl', file: p.file, progress: p.progress }); };
 self.onmessage = async e => {
-  const { audio, model } = e.data;
+  const { audio, model, ios } = e.data;
   try {
     if (!T) {
       post({ type: 'stage', text: 'AIの部品を読み込んでいます', pct: 2 });
@@ -792,7 +793,7 @@ self.onmessage = async e => {
     }
     const { pipeline, AutoProcessor, AutoModelForAudioFrameClassification } = T;
     let device = 'wasm';
-    try { if (navigator.gpu && await navigator.gpu.requestAdapter()) device = 'webgpu'; } catch (_) {}
+    if (!ios) { try { if (navigator.gpu && await navigator.gpu.requestAdapter()) device = 'webgpu'; } catch (_) {} }
     post({ type: 'stage', text: '話者を分けるAIを準備しています', pct: 3 });
     if (!segModel) {
       segProc = await AutoProcessor.from_pretrained(SEG, { progress_callback });
@@ -857,6 +858,8 @@ $('procBtn').onclick = async () => {
   if (S.cur.utterances.some(u => u.start != null) &&
       !await confirmDlg('文字起こしをやり直す', '今の自動記録（手で追加した発言以外）を置き換えます。よろしいですか？', '実行する')) return;
   const recId = S.cur.id;
+  await flushSave();
+  try { localStorage.setItem('kikitori-processing', String(Date.now())); } catch (_) {}
   S.proc = true; S.busy = true; keepAwake(true);
   $('procBtn').disabled = true; $('recStart').disabled = true; $('fileIn').disabled = true;
   let audio;
@@ -892,10 +895,11 @@ $('procBtn').onclick = async () => {
     prog('AIの部品を読み込めませんでした。インターネットに接続して、もう一度押してください。', 0);
     worker.terminate(); worker = null; endProc();
   };
-  w.postMessage({ audio, model: $('fModel').value }, [audio.buffer]);
+  w.postMessage({ audio, model: $('fModel').value, ios: IS_IOS }, [audio.buffer]);
 };
 function endProc() {
   S.proc = false; S.busy = false;
+  try { localStorage.removeItem('kikitori-processing'); } catch (_) {}
   $('procBtn').disabled = !A.blob; $('recStart').disabled = false; $('fileIn').disabled = false;
 }
 
@@ -974,7 +978,7 @@ if (IS_IOS) {
   document.documentElement.classList.add('is-ios');
   if (IS_STANDALONE) $('homeHint').classList.add('hidden');
   // iPhoneはメモリが少ないため、高精度は選べるが注意を出す
-  $('fModel').options[1].textContent = '高精度（iPhoneでは途中で止まることがあります）';
+  $('fModel').querySelector('option[value$="whisper-small"]').textContent = '高精度（iPhoneでは途中で止まります）';
 }
 // 記録をブラウザに自動で消されにくくする
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
@@ -992,7 +996,10 @@ async function keepAwake(on) {
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.busy) keepAwake(true); });
 setInterval(() => keepAwake(!!S.busy), 3000);
 
-initLock().catch(e => lockErr('このブラウザでは保存機能が使えません：' + e.message));
+initLock().then(() => {
+  let f = null; try { f = localStorage.getItem('kikitori-processing'); localStorage.removeItem('kikitori-processing'); } catch (_) {}
+  if (f) lockErr('前回、文字起こしの途中で画面が再読み込みされました。端末のメモリ不足の可能性があります。録音を短くするか「軽量」を選ぶか、パソコンで処理してください。');
+}).catch(e => lockErr('このブラウザでは保存機能が使えません：' + e.message));
 </script>
 </body>
 </html>
