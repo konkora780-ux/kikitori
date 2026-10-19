@@ -627,7 +627,7 @@ function optionsHtml(sel) {
     + `<option value="" ${!sel ? 'selected' : ''}>不明</option>`;
 }
 function renderMap() {
-  const keys = Object.keys(S.cur.speakerSamples || {}).sort();
+  const keys = Object.keys(S.cur.speakerSamples || {}).sort((a, b) => a.slice(1) - b.slice(1));
   $('mapSec').classList.toggle('hidden', !keys.length);
   $('mapList').innerHTML = keys.map((k, i) => `
     <div class="maprow"><span>話者${i + 1}</span>
@@ -836,11 +836,119 @@ addEventListener('beforeunload', e => { if (A.blob || (A.recorder && A.recorder.
 /* ========== 話者分離＋文字起こし（ブラウザ内で処理） ========== */
 const WORKER_SRC = `
 const SEG = 'onnx-community/pyannote-segmentation-3.0';
+// 声の特徴（話者埋め込み）を取り出すAI。上から順に試し、使えたものを使う。thr は「同じ人」とみなす似ている度合い
+const EMB = [
+  { id: 'onnx-community/wespeaker-voxceleb-resnet34-LM', dtype: 'fp32', thr: 0.3 },
+  { id: 'Xenova/wavlm-base-plus-sv', dtype: 'q8', thr: 0.86 },
+];
 let T = null, segProc = null, segModel = null, asr = null, asrId = '';
+let emb = null, embTried = false;
 const post = m => self.postMessage(m);
+/*CLUSTER-BEGIN*/
+const WIN = 10; // 区切り用AIは10秒単位で学習されているため、10秒ずつ処理する（長い録音でもメモリが足りなくならない）
+// 区切り用AIの番号 → その10秒の中での話者（1〜3）。0は無音。4〜6は2人が重なった声で、先に話した方として扱う
+// （番号の並びは pyannote の決まり：無音、1人目、2人目、3人目、1+2、1+3、2+3）
+function localSpk(id) { return ({ 1: 1, 2: 2, 3: 3, 4: 1, 5: 1, 6: 2 })[id] || 0; }
+function unitVec(v) { let s = 0; for (let i = 0; i < v.length; i++) s += v[i] * v[i]; s = Math.sqrt(s) || 1; return Float32Array.from(v, x => x / s); }
+function dot(a, b) { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; }
+/* 似た声をまとめる（重心で比べる階層的クラスタリング）。
+   似ている度合いが thr 未満になったら止める。ただし maxK 人より多いうちは止めない */
+function clusterVecs(vecs, maxK, thr) {
+  const n = vecs.length; if (!n) return [];
+  const sum = vecs.map(v => Float32Array.from(unitVec(v))), alive = new Array(n).fill(true), lab = [...Array(n).keys()];
+  const sim = (i, j) => dot(sum[i], sum[j]) / (Math.sqrt(dot(sum[i], sum[i]) * dot(sum[j], sum[j])) || 1);
+  const S = Array.from({ length: n }, () => new Float32Array(n));
+  for (let i = 0; i < n; i++) for (let j = 0; j < i; j++) S[i][j] = S[j][i] = sim(i, j);
+  for (let k = n; k > 1; k--) {
+    let bi = -1, bj = -1, best = -Infinity;
+    for (let i = 0; i < n; i++) if (alive[i]) for (let j = i + 1; j < n; j++) if (alive[j] && S[i][j] > best) { best = S[i][j]; bi = i; bj = j; }
+    if (best < thr && k <= maxK) break;
+    for (let d = 0; d < sum[bi].length; d++) sum[bi][d] += sum[bj][d];
+    alive[bj] = false;
+    for (let x = 0; x < n; x++) if (lab[x] === bj) lab[x] = bi;
+    for (let x = 0; x < n; x++) if (alive[x] && x !== bi) S[bi][x] = S[x][bi] = sim(bi, x);
+  }
+  // 最初に話した順に 0,1,2… と振り直す
+  const order = new Map(); return lab.map(l => { if (!order.has(l)) order.set(l, order.size); return order.get(l); });
+}
+/* units：10秒ごと・話者ごとのまとまり { t: 話し始めの秒, vec: 声の特徴 or null（短すぎて取れない） }
+   返り値：units と同じ順の話者番号（0から）。特徴が取れないものは、時間が一番近いまとまりと同じ人にする */
+function assignSpeakers(units, maxK, thr) {
+  const strong = units.map((u, i) => i).filter(i => units[i].vec);
+  const out = new Array(units.length).fill(0);
+  if (!strong.length) return out;
+  const lab = clusterVecs(strong.map(i => units[i].vec), maxK, thr);
+  strong.forEach((i, j) => { out[i] = lab[j]; });
+  units.forEach((u, i) => {
+    if (u.vec) return;
+    let b = strong[0]; for (const s of strong) if (Math.abs(units[s].t - u.t) < Math.abs(units[b].t - u.t)) b = s;
+    out[i] = out[b];
+  });
+  return out;
+}
+/*CLUSTER-END*/
 const progress_callback = p => { if (p.status === 'progress') post({ type: 'dl', file: p.file, progress: p.progress }); };
+async function loadEmb() {
+  if (embTried) return emb;
+  embTried = true;
+  for (const m of EMB) {
+    try {
+      const proc = await T.AutoProcessor.from_pretrained(m.id, { progress_callback });
+      const model = await T.AutoModel.from_pretrained(m.id, { device: 'wasm', dtype: m.dtype, progress_callback });
+      return (emb = { ...m, proc, model });
+    } catch (_) {}
+  }
+  return null;
+}
+async function embed(x) {
+  const o = await emb.model(await emb.proc(x));
+  const t = o.embeddings || o.last_hidden_state || o[Object.keys(o)[0]];
+  return Float32Array.from(t.data);
+}
+/* 話者分け：①10秒ずつ区切り用AIで「いつ・その10秒の中の何人目が話したか」を出す
+   ②10秒ごと・話者ごとに声を集めて声の特徴を取る ③録音全体で似た声をまとめて同じ人にする */
+async function diarize(audio, maxK) {
+  const sr = 16000, step = WIN * sr, nWin = Math.ceil(audio.length / step);
+  const raw = [];
+  for (let w = 0; w < nWin; w++) {
+    post({ type: 'stage', text: '声の区切りを探しています（' + (w + 1) + '/' + nWin + '）', pct: 5 + Math.round(w / nWin * 5) });
+    const x = audio.subarray(w * step, Math.min(audio.length, (w + 1) * step));
+    if (x.length < sr / 2) continue;
+    const { logits } = await segModel(await segProc(x));
+    for (const s of segProc.post_process_speaker_diarization(logits, x.length)[0]) {
+      const l = localSpk(s.id);
+      if (l && s.end - s.start >= 0.2) raw.push({ win: w, l, start: w * WIN + s.start, end: w * WIN + s.end });
+    }
+  }
+  if (!raw.length) return { segs: [], note: '' };
+  // 10秒ごと・話者ごとにまとめる
+  const units = [], idx = new Map();
+  for (const s of raw) {
+    const key = s.win + ':' + s.l;
+    if (!idx.has(key)) { idx.set(key, units.length); units.push({ t: s.start, parts: [], len: 0, vec: null }); }
+    const u = units[idx.get(key)]; u.parts.push(s); u.len += s.end - s.start;
+  }
+  post({ type: 'stage', text: '声の特徴を調べるAIを準備しています', pct: 11 });
+  const ok = await loadEmb();
+  if (ok) {
+    for (let i = 0; i < units.length; i++) {
+      const u = units[i];
+      if (i % 5 === 0) post({ type: 'stage', text: '声の特徴を調べています（' + (i + 1) + '/' + units.length + '）', pct: 12 + Math.round(i / units.length * 8) });
+      if (u.len < 0.8) continue; // 短すぎる声は特徴が安定しない
+      const buf = new Float32Array(Math.round(u.len * sr) + u.parts.length);
+      let p = 0;
+      for (const s of u.parts) { const a = audio.subarray(Math.floor(s.start * sr), Math.floor(s.end * sr)); buf.set(a, p); p += a.length; }
+      try { u.vec = await embed(buf.subarray(0, p)); } catch (_) {}
+    }
+  }
+  const lab = ok ? assignSpeakers(units, Math.max(1, maxK), emb.thr) : units.map((u, i) => raw.find(s => idx.get(s.win + ':' + s.l) === i).l - 1);
+  const segs = [];
+  units.forEach((u, i) => u.parts.forEach(s => segs.push({ start: s.start, end: s.end, spk: 'S' + (lab[i] + 1) })));
+  segs.sort((a, b) => a.start - b.start);
+  return { segs, note: ok ? '' : '声の特徴を調べるAIを読み込めなかったため、話者分けの精度が下がっています。' };
+}
 self.onmessage = async e => {
-  const { audio, model, ios } = e.data;
+  const { audio, model, ios, maxK } = e.data;
   try {
     if (!T) {
       post({ type: 'stage', text: 'AIの部品を読み込んでいます', pct: 2 });
@@ -855,11 +963,7 @@ self.onmessage = async e => {
       segProc = await AutoProcessor.from_pretrained(SEG, { progress_callback });
       segModel = await AutoModelForAudioFrameClassification.from_pretrained(SEG, { device: 'wasm', dtype: 'fp32', progress_callback });
     }
-    post({ type: 'stage', text: '声の特徴で話者を分けています', pct: 10 });
-    const inputs = await segProc(audio);
-    const { logits } = await segModel(inputs);
-    const segs = segProc.post_process_speaker_diarization(logits, audio.length)[0];
-    const labels = segModel.config.id2label || {};
+    const { segs, note } = await diarize(audio, maxK || 3);
     post({ type: 'stage', text: '文字起こしのAIを準備しています（' + (device === 'webgpu' ? 'GPU使用' : 'CPU使用') + '）', pct: 20 });
     if (!asr || asrId !== model) {
       asr = await pipeline('automatic-speech-recognition', model, {
@@ -870,7 +974,7 @@ self.onmessage = async e => {
     }
     post({ type: 'stage', text: '文字起こしをしています（録音の長さによって数分かかります）', pct: 30, asr: true });
     const out = await asr(audio, { language: 'japanese', task: 'transcribe', return_timestamps: true, chunk_length_s: 30, stride_length_s: 5 });
-    post({ type: 'done', segs, labels, chunks: out.chunks || [{ timestamp: [0, null], text: out.text }] });
+    post({ type: 'done', segs, note, chunks: out.chunks || [{ timestamp: [0, null], text: out.text }] });
   } catch (err) {
     post({ type: 'error', message: String(err && err.message || err) });
   }
@@ -938,7 +1042,7 @@ $('procBtn').onclick = async () => {
       clearInterval(asrTimer);
       const rec = S.records.find(r => r.id === recId);
       if (rec) { applyResult(rec, m, dur); saveRecord(rec); if (S.cur && S.cur.id === recId) { renderMap(); renderUtts(); } }
-      prog('完了しました。話者の割り当てと内容を確認してください。', 100);
+      prog('完了しました。話者の割り当てと内容を確認してください。' + (m.note || ''), 100);
       endProc();
     } else if (m.type === 'error') {
       clearInterval(asrTimer);
@@ -951,7 +1055,7 @@ $('procBtn').onclick = async () => {
     prog('AIの部品を読み込めませんでした。インターネットに接続して、もう一度押してください。', 0);
     worker.terminate(); worker = null; endProc();
   };
-  w.postMessage({ audio, model: $('fModel').value, ios: IS_IOS }, [audio.buffer]);
+  w.postMessage({ audio, model: $('fModel').value, ios: IS_IOS, maxK: Math.min(8, people(S.cur).length) }, [audio.buffer]);
 };
 function endProc() {
   S.proc = false; S.busy = false;
@@ -961,13 +1065,8 @@ function endProc() {
 
 /* 話者分離の結果と文字起こしの結果を突き合わせる */
 const HALLU = /ご視聴ありがとうございました|チャンネル登録|字幕は/;
-function spkKey(id, labels) {
-  const lb = labels[id];
-  if (typeof lb === 'string') { const m = lb.match(/SPEAKER_?(\d+)/i); return m ? 'S' + m[1] : null; }
-  return ({ 1: 'S1', 2: 'S2', 3: 'S3', 4: 'S1', 5: 'S1', 6: 'S2' })[id] || null;
-}
 function applyResult(rec, m, dur) {
-  const segs = m.segs.map(s => ({ ...s, k: spkKey(s.id, m.labels) })).filter(s => s.k);
+  const segs = m.segs.map(s => ({ ...s, k: s.spk }));
   const items = [];
   for (const c of m.chunks) {
     const text = (c.text || '').trim();
